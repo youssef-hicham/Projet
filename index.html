@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Administrateur - Tableau de bord</title>
+    <link rel="stylesheet" href="Dashboard.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <aside class="left-panel">
+            <div class="logo-area">
+                <h1>Espace<span> Administrateur</span></h1>
+            </div>
+
+            <div class="box alertes-maintenance">
+                <div class="box-header">
+                    <h2>⚠️ Alertes de maintenance</h2>
+                </div>
+                <div class="scroll-content">
+                    <table class="maintenance-table">
+                        <thead>
+                            <tr>
+                                <th>Appareil</th>
+                                <th>Alerte</th>
+                            </tr>
+                        </thead>
+                        <tbody id="maintenanceList"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="box gestion-utilisateurs">
+                <div class="box-header">
+                    <h2>👥 Utilisateurs</h2>
+                </div>
+                
+                <div class="search-bar">
+                    <input type="search" id="searchUser" placeholder="Rechercher...">
+                </div>
+
+                <ul id="userList" class="custom-scrollbar">
+                    </ul>
+
+                <div class="user-actions">
+                    <button id="btnAddUser" class="btn-primary">Ajouter</button>
+                    <button id="btnDeleteUser" class="btn-outline">Supprimer</button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="right-panel">
+
+            <div class="box analyse-consommation">
+                <div class="box-header">
+                    <h2>📊 Analyse de consommation</h2>
+                    <span class="unit-tag">Wh</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="consoChart"></canvas>
+                </div>
+            </div>
+
+            <div class="box etat-parc">
+                <div class="box-header">
+                    <h2>🔌 État du parc</h2>
+                    <div class="prise-actions">
+                        <button id="btnAddPrise" class="btn-small">＋ Ajouter</button>
+                        <button id="btnDeletePrise" class="btn-small btn-danger">− Supprimer</button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper custom-scrollbar">
+                    <table class="etat-table">
+                        <thead>
+                            <tr>
+                                <th>Équipement</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="priseTableBody">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <script src="UserManager.js"></script>
+    <script src="Graph.js"></script>
+    <script src="Notification.js"></script>
+    <script src="Prises.js"></script>
+
+</body>
+</html>
