@@ -8,9 +8,9 @@ class UserManager {
             temp.textContent = str;
             return temp.innerHTML;
         };
-        this.selectedUserId = null; // ID de l'utilisateur sÃ©lectionnÃ©
+        this.selectedUserId = null; // ID de l'utilisateur sélectionné
         
-        // SÃ‰CURITÃ‰ DOM : On attend que la page soit chargÃ©e pour attacher les Ã©vÃ©nements
+        // SÉCURITÉ DOM : On attend que la page soit chargée pour attacher les événements
         if (document.readyState === "loading") {
             document.addEventListener("DOMContentLoaded", () => {
                 this.initDeleteButton();
@@ -34,7 +34,7 @@ class UserManager {
             }
             this.socket = window.appSocket;
             
-            // Mettre Ã  jour le solde en direct dans la liste des utilisateurs
+            // Mettre à jour le solde en direct dans la liste des utilisateurs
             this.socket.on('live_consumption', (data) => {
                 const userRow = document.querySelector(`#userList li[data-id='${data.userId}']`);
                 if (userRow) {
@@ -43,12 +43,12 @@ class UserManager {
                         // Petite animation visuelle de consommation
                         balanceSpan.textContent = data.newBalance.toFixed(2);
                         balanceSpan.style.color = "#e74c3c"; // Passe en rouge
-                        setTimeout(() => balanceSpan.style.color = "", 500); // Revient Ã  la normale
+                        setTimeout(() => balanceSpan.style.color = "", 500); // Revient à la normale
                     }
                 }
             });
 
-            // NOUVEAU: RafraÃ®chissement complet (crÃ©ation, suppression, recharge PayPal, arrÃªt charge)
+            // NOUVEAU: Rafraîchissement complet (création, suppression, recharge PayPal, arrêt charge)
             this.socket.on('user_data_updated', () => {
                 this.fetchAllUsers();
             });
@@ -60,7 +60,7 @@ class UserManager {
                     title: `Nouvelle demande : ${data.username}`,
                     showConfirmButton: false, timer: 5000
                 });
-                this.fetchPendingRequests(true); // Met Ã  jour la pastille rouge
+                this.fetchPendingRequests(true); // Met à jour la pastille rouge
             });
 
             this.socket.on('registration_request_handled', () => {
@@ -69,9 +69,9 @@ class UserManager {
         }
     }
 
-    // Connexion automatique pour rÃ©cupÃ©rer le token Admin
+    // Connexion automatique pour récupérer le token Admin
     async loginAdmin() {
-        // SÃ‰CURITÃ‰ : On demande les identifiants Ã  l'utilisateur au lieu de les lire en dur
+        // SÉCURITÉ : On demande les identifiants à l'utilisateur au lieu de les lire en dur
         const { value: formValues } = await Swal.fire({
             title: 'Authentification Admin Requise',
             html:
@@ -86,7 +86,7 @@ class UserManager {
             }
         });
 
-        if (!formValues) return false; // L'utilisateur a annulÃ©
+        if (!formValues) return false; // L'utilisateur a annulé
 
         try {
             const response = await fetch(`${this.apiUrl}/auth/login`, {
@@ -98,8 +98,8 @@ class UserManager {
             
             if (response.ok && data.token) {
                 this.token = data.token;
-                console.log("âœ… Dashboard connectÃ© en tant qu'Admin.");
-                this.fetchAllUsers(); // <--- Une fois connectÃ©, on charge la liste
+                console.log("✅ Dashboard connecté en tant qu'Admin.");
+                this.fetchAllUsers(); // <--- Une fois connecté, on charge la liste
                 this.fetchPendingRequests(true); // <--- Charge la cloche de notification
                 return true;
             }
@@ -110,7 +110,7 @@ class UserManager {
         }
     }
 
-    // RÃ©cupÃ©rer tous les utilisateurs depuis la BDD
+    // Récupérer tous les utilisateurs depuis la BDD
     async fetchAllUsers() {
         try {
             const response = await fetch(`${this.apiUrl}/auth/users`, {
@@ -129,7 +129,7 @@ class UserManager {
                         if (user.username === 'Admin') return; // Masquer l'utilisateur Admin
                         this.addUserToDashboard(user.id, user.username, user.balance);
                     });
-                    // On rÃ©applique le filtre de recherche s'il y en avait un
+                    // On réapplique le filtre de recherche s'il y en avait un
                     this.applySearchFilter();
                 }
             }
@@ -167,13 +167,13 @@ class UserManager {
         if (this.btnDeleteUser) {
             this.btnDeleteUser.addEventListener("click", async () => {
                 if (!this.selectedUserId) {
-                    Swal.fire('Attention', 'Veuillez sÃ©lectionner un utilisateur Ã  supprimer.', 'warning');
+                    Swal.fire('Attention', 'Veuillez sélectionner un utilisateur à supprimer.', 'warning');
                     return;
                 }
 
                 const confirm = await Swal.fire({
-                    title: 'ÃŠtes-vous sÃ»r ?',
-                    text: "Cette action est irrÃ©versible !",
+                    title: 'Êtes-vous sûr ?',
+                    text: "Cette action est irréversible !",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
@@ -195,18 +195,18 @@ class UserManager {
             });
 
             if (response.ok) {
-                Swal.fire('SupprimÃ© !', 'L\'utilisateur a Ã©tÃ© supprimÃ©.', 'success');
+                Swal.fire('Supprimé !', 'L\'utilisateur a été supprimé.', 'success');
                 this.selectedUserId = null;
-                this.fetchAllUsers(); // RafraÃ®chir la liste
+                this.fetchAllUsers(); // Rafraîchir la liste
             } else {
                 let message;
                 try {
-                    // On parse la rÃ©ponse de l'API pour rÃ©cupÃ©rer les donnÃ©es de l'erreur
+                    // On parse la réponse de l'API pour récupérer les données de l'erreur
                     const errorData = await response.json();
                     message = errorData.message || "Erreur lors de la suppression";
                 } catch (e) {
-                    // Si l'API renvoie du texte brut ou rien du tout, on tombe ici et on garde le message par dÃ©faut
-                    console.error("Erreur lors de la lecture de la rÃ©ponse de l'API", e);
+                    // Si l'API renvoie du texte brut ou rien du tout, on tombe ici et on garde le message par défaut
+                    console.error("Erreur lors de la lecture de la réponse de l'API", e);
                 }
 
                 // On affiche l'erreur dans SweetAlert
@@ -242,7 +242,7 @@ class UserManager {
 
             return { success: true, data, firstName, lastName, creditAmount };
         } catch (error) {
-            return { success: false, message: "Erreur rÃ©seau" };
+            return { success: false, message: "Erreur réseau" };
         }
     }
 
@@ -254,38 +254,38 @@ class UserManager {
         li.dataset.id = id;
         li.dataset.username = username; // Pour le Graph
         
-        // Structure flexbox pour aligner le bouton d'info Ã  droite
+        // Structure flexbox pour aligner le bouton d'info à droite
         li.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <span><b>${this.sanitizer(username)}</b> - CrÃ©dit: <span class="user-balance">${parseFloat(creditAmount).toFixed(2)}</span>â‚¬</span>
+                <span><b>${this.sanitizer(username)}</b> - Crédit: <span class="user-balance">${parseFloat(creditAmount).toFixed(2)}</span>€</span>
                 <div>
-                    <button class="btn-edit-user" style="background: none; border: none; cursor: pointer; font-size: 1.2em; padding: 0; margin-left: 10px;" title="Modifier l'utilisateur">âœï¸</button>
-                    <button class="btn-info-user" style="background: none; border: none; cursor: pointer; font-size: 1.2em; padding: 0; margin-left: 10px;" title="Voir les infos de l'utilisateur">â„¹ï¸</button>
+                    <button class="btn-edit-user" style="background: none; border: none; cursor: pointer; font-size: 1.2em; padding: 0; margin-left: 10px;" title="Modifier l'utilisateur">✏️</button>
+                    <button class="btn-info-user" style="background: none; border: none; cursor: pointer; font-size: 1.2em; padding: 0; margin-left: 10px;" title="Voir les infos de l'utilisateur">ℹ️</button>
                 </div>
             </div>
         `;
         
-        // Maintenir la sÃ©lection visuelle lors du rechargement en temps rÃ©el
+        // Maintenir la sélection visuelle lors du rechargement en temps réel
         if (this.selectedUserId == id) {
             li.style.backgroundColor = "#d0eaff";
         }
 
         li.addEventListener("click", (e) => {
-            // Si on a cliquÃ© sur le bouton info, on affiche la popup et on empÃªche la sÃ©lection de la ligne
+            // Si on a cliqué sur le bouton info, on affiche la popup et on empêche la sélection de la ligne
             if (e.target.closest('.btn-info-user')) {
                 e.stopPropagation();
                 this.showUserDetails(id);
                 return;
             }
             
-            // Si on a cliquÃ© sur le bouton d'Ã©dition
+            // Si on a cliqué sur le bouton d'édition
             if (e.target.closest('.btn-edit-user')) {
                 e.stopPropagation();
                 this.editUserDetails(id);
                 return;
             }
 
-            // Gestion de la sÃ©lection visuelle
+            // Gestion de la sélection visuelle
             document.querySelectorAll("#userList li").forEach(el => el.style.backgroundColor = "");
             li.style.backgroundColor = "#d0eaff";
             this.selectedUserId = id;
@@ -294,17 +294,17 @@ class UserManager {
         userList.appendChild(li);
     }
 
-    // Ouvre une fenÃªtre pour modifier un utilisateur
+    // Ouvre une fenêtre pour modifier un utilisateur
     async editUserDetails(userId) {
         if (!this.token) await this.loginAdmin();
         try {
             Swal.fire({ title: 'Chargement...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             
-            // RÃ©cupÃ¨re les infos actuelles (via la route history)
+            // Récupère les infos actuelles (via la route history)
             const response = await fetch(`${this.apiUrl}/auth/users/${userId}/history`, {
                 headers: { "Authorization": `Bearer ${this.token}` }
             });
-            if (!response.ok) throw new Error("Erreur de rÃ©cupÃ©ration");
+            if (!response.ok) throw new Error("Erreur de récupération");
             const data = await response.json();
             const user = data.user;
 
@@ -314,12 +314,12 @@ class UserManager {
                     <input id="edit-username" class="swal2-input" placeholder="Nom d'utilisateur" value="${this.sanitizer(user.username)}">
                     <input id="edit-email" type="email" class="swal2-input" placeholder="Email" value="${this.sanitizer(user.email)}">
                     <input id="edit-password" type="password" class="swal2-input" placeholder="Nouveau mot de passe (optionnel)">
-                    <input id="edit-balance" type="number" step="0.01" class="swal2-input" placeholder="Solde (â‚¬)" value="${this.sanitizer(parseFloat(user.balance).toFixed(2))}">
+                    <input id="edit-balance" type="number" step="0.01" class="swal2-input" placeholder="Solde (€)" value="${this.sanitizer(parseFloat(user.balance).toFixed(2))}">
                     <small style="color: #7f8c8d; display: block; margin-top: 5px;">Laissez le mot de passe vide pour ne pas le modifier.</small>
                 `,
                 focusConfirm: false,
                 showCancelButton: true,
-                confirmButtonText: 'ðŸ’¾ Sauvegarder',
+                confirmButtonText: '💾 Sauvegarder',
                 cancelButtonText: 'Annuler',
                 preConfirm: () => {
                     const username = document.getElementById('edit-username').value;
@@ -332,7 +332,7 @@ class UserManager {
                         return false;
                     }
                     if (balance < 0 || balance > 100) {
-                        Swal.showValidationMessage('Le solde doit Ãªtre compris entre 0â‚¬ et 100â‚¬.');
+                        Swal.showValidationMessage('Le solde doit être compris entre 0€ et 100€.');
                         return false;
                     }
                     return { username, email, password, balance };
@@ -348,7 +348,7 @@ class UserManager {
                 });
                 const updateData = await updateResponse.json();
                 if (updateResponse.ok) {
-                    Swal.fire('SuccÃ¨s', 'Utilisateur mis Ã  jour.', 'success');
+                    Swal.fire('Succès', 'Utilisateur mis à jour.', 'success');
                     // Le WebSocket rechargera la liste tout seul
                 } else {
                     Swal.fire('Erreur', updateData.error || "Impossible de modifier l'utilisateur.", 'error');
@@ -365,12 +365,12 @@ class UserManager {
         try {
             Swal.fire({ title: 'Chargement des informations...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             
-            // On rÃ©utilise la route history qui renvoie maintenant aussi le profil et les transactions !
+            // On réutilise la route history qui renvoie maintenant aussi le profil et les transactions !
             const response = await fetch(`${this.apiUrl}/auth/users/${userId}/history`, {
                 headers: { "Authorization": `Bearer ${this.token}` }
             });
 
-            if (!response.ok) throw new Error("Erreur de rÃ©cupÃ©ration");
+            if (!response.ok) throw new Error("Erreur de récupération");
             
             const data = await response.json();
             const user = data.user;
@@ -386,25 +386,25 @@ class UserManager {
                     <tr>
                         <td style="padding: 5px; border-bottom: 1px solid #eee; font-size: 0.9em;">${dateTx}</td>
                         <td style="padding: 5px; border-bottom: 1px solid #eee; font-size: 0.9em;">${this.sanitizer(tx.description || tx.type)}</td>
-                        <td style="padding: 5px; border-bottom: 1px solid #eee; font-size: 0.9em; color: ${color}; font-weight: bold;">${sign}${parseFloat(tx.amount).toFixed(2)}â‚¬</td>
+                        <td style="padding: 5px; border-bottom: 1px solid #eee; font-size: 0.9em; color: ${color}; font-weight: bold;">${sign}${parseFloat(tx.amount).toFixed(2)}€</td>
                     </tr>
                 `;
             }).join('');
 
             if (transactions.length === 0) {
-                trHtml = `<tr><td colspan="3" style="text-align: center; padding: 10px; color: #7f8c8d;">Aucune transaction rÃ©cente</td></tr>`;
+                trHtml = `<tr><td colspan="3" style="text-align: center; padding: 10px; color: #7f8c8d;">Aucune transaction récente</td></tr>`;
             }
 
             Swal.fire({
                 title: `Profil de ${this.sanitizer(user.username)}`,
                 html: `
                     <div style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.95em;">
-                        <p style="margin: 5px 0;">ðŸ“§ <b>Email:</b> ${this.sanitizer(user.email)}</p>
-                        <p style="margin: 5px 0;">ðŸ’° <b>Solde actuel:</b> <span style="color:#2980b9; font-weight:bold;">${this.sanitizer(parseFloat(user.balance).toFixed(2))}â‚¬</span></p>
-                        <p style="margin: 5px 0;">ðŸ“… <b>Inscrit le:</b> ${this.sanitizer(dateInscr)}</p>
-                        <p style="margin: 5px 0; color: #7f8c8d;">ðŸ”‘ <b>Mot de passe:</b> HachÃ© et sÃ©curisÃ© en BDD</p>
+                        <p style="margin: 5px 0;">📧 <b>Email:</b> ${this.sanitizer(user.email)}</p>
+                        <p style="margin: 5px 0;">💰 <b>Solde actuel:</b> <span style="color:#2980b9; font-weight:bold;">${this.sanitizer(parseFloat(user.balance).toFixed(2))}€</span></p>
+                        <p style="margin: 5px 0;">📅 <b>Inscrit le:</b> ${this.sanitizer(dateInscr)}</p>
+                        <p style="margin: 5px 0; color: #7f8c8d;">🔑 <b>Mot de passe:</b> Haché et sécurisé en BDD</p>
                     </div>
-                    <h4 style="margin: 0 0 10px 0; text-align: left; border-bottom: 2px solid #3498db; display: inline-block;">DerniÃ¨res Transactions</h4>
+                    <h4 style="margin: 0 0 10px 0; text-align: left; border-bottom: 2px solid #3498db; display: inline-block;">Dernières Transactions</h4>
                     <div style="max-height: 200px; overflow-y: auto; border: 1px solid #eee; border-radius: 5px;">
                         <table style="width: 100%; border-collapse: collapse; text-align: left;">
                             <thead style="background: #ecf0f1; position: sticky; top: 0;">
@@ -438,12 +438,12 @@ class UserManager {
         const bellBtn = document.getElementById('btnPendingRequests');
         if (bellBtn) {
             bellBtn.addEventListener('click', async () => {
-                // Si l'admin n'est pas authentifiÃ©, on force la connexion
+                // Si l'admin n'est pas authentifié, on force la connexion
                 if (!this.token) {
                     const logged = await this.loginAdmin();
                     if (!logged) return;
                 }
-                // On interroge la base de donnÃ©es en direct avant d'afficher la fenÃªtre
+                // On interroge la base de données en direct avant d'afficher la fenêtre
                 this.fetchPendingRequests(false);
             });
         }
@@ -471,7 +471,7 @@ class UserManager {
 
     async showPendingRequestsModal() {
         if (!this.pendingRequests || this.pendingRequests.length === 0) {
-            Swal.fire('Info', 'Aucune demande de crÃ©ation de compte en attente.', 'info');
+            Swal.fire('Info', 'Aucune demande de création de compte en attente.', 'info');
             return;
         }
 
@@ -486,8 +486,8 @@ class UserManager {
                         <small style="color:#bdc3c7;">Le ${dateStr}</small>
                     </div>
                     <div>
-                        <button onclick="userManager.approveRequest(${req.id}, '${this.sanitizer(req.username).replace(/'/g, "\\'")}')" style="background:#27ae60; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold; margin-right:5px;">âœ… Valider</button>
-                        <button onclick="userManager.rejectRequest(${req.id}, '${this.sanitizer(req.username).replace(/'/g, "\\'")}')" style="background:#e74c3c; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold;">âŒ Refuser</button>
+                        <button onclick="userManager.approveRequest(${req.id}, '${this.sanitizer(req.username).replace(/'/g, "\\'")}')" style="background:#27ae60; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold; margin-right:5px;">✅ Valider</button>
+                        <button onclick="userManager.rejectRequest(${req.id}, '${this.sanitizer(req.username).replace(/'/g, "\\'")}')" style="background:#e74c3c; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold;">❌ Refuser</button>
                     </div>
                 </li>
             `;
@@ -510,10 +510,10 @@ class UserManager {
         const { value: initialBalance } = await Swal.fire({
             title: `Valider le compte de ${username}`,
             input: 'number',
-            inputLabel: 'Attribuer un solde initial (â‚¬) :',
+            inputLabel: 'Attribuer un solde initial (€) :',
             inputValue: 67.00,
             showCancelButton: true,
-            confirmButtonText: 'CrÃ©er le compte',
+            confirmButtonText: 'Créer le compte',
             cancelButtonText: 'Annuler',
             confirmButtonColor: '#27ae60',
             inputValidator: (value) => {
@@ -534,13 +534,13 @@ class UserManager {
                 });
                 
                 if (response.ok) {
-                    Swal.fire('SuccÃ¨s !', 'L\'Ã©lÃ¨ve a Ã©tÃ© validÃ© et son compte est crÃ©Ã©.', 'success');
+                    Swal.fire('Succès !', 'L\'élève a été validé et son compte est créé.', 'success');
                 } else {
                     const err = await response.json();
                     Swal.fire('Erreur', err.error || 'Erreur lors de la validation.', 'error');
                 }
             } catch (e) {
-                Swal.fire('Erreur', 'Erreur rÃ©seau.', 'error');
+                Swal.fire('Erreur', 'Erreur réseau.', 'error');
             }
         } else {
             // S'il annule, on rouvre la liste
@@ -552,7 +552,7 @@ class UserManager {
         Swal.close();
         const confirm = await Swal.fire({
             title: 'Refuser la demande ?',
-            text: `Rejeter et supprimer dÃ©finitivement l'inscription de ${username} ?`,
+            text: `Rejeter et supprimer définitivement l'inscription de ${username} ?`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e74c3c',
@@ -568,12 +568,12 @@ class UserManager {
                 });
                 
                 if (response.ok) {
-                    Swal.fire('RefusÃ©', 'La demande a Ã©tÃ© rejetÃ©e.', 'success');
+                    Swal.fire('Refusé', 'La demande a été rejetée.', 'success');
                 } else {
                     Swal.fire('Erreur', 'Erreur lors du rejet de la demande.', 'error');
                 }
             } catch (e) {
-                Swal.fire('Erreur', 'Erreur rÃ©seau.', 'error');
+                Swal.fire('Erreur', 'Erreur réseau.', 'error');
             }
         } else {
             this.showPendingRequestsModal();
@@ -583,19 +583,19 @@ class UserManager {
     attachToForm(btnId) {
         const btn = document.getElementById(btnId);
         
-        // SÃ©curitÃ© : Si le bouton n'existe pas sur cette page, on ne fait rien (Ã©vite de planter le script)
+        // Sécurité : Si le bouton n'existe pas sur cette page, on ne fait rien (évite de planter le script)
         if (!btn) return;
 
         btn.addEventListener("click", async () => {
-            // Affiche une fenÃªtre "Prompt" version formulaire complet
+            // Affiche une fenêtre "Prompt" version formulaire complet
             const { value: formValues } = await Swal.fire({
                 title: 'Ajouter un utilisateur',
                 html:
-                    '<input id="swal-input1" class="swal2-input" placeholder="PrÃ©nom">' +
+                    '<input id="swal-input1" class="swal2-input" placeholder="Prénom">' +
                     '<input id="swal-input2" class="swal2-input" placeholder="Nom">' +
                     '<input id="swal-input3" type="email" class="swal2-input" placeholder="Email">' +
                     '<input id="swal-input4" type="password" class="swal2-input" placeholder="Mot de passe">' +
-                    '<input id="swal-input5" type="number" class="swal2-input" placeholder="CrÃ©dit initial">',
+                    '<input id="swal-input5" type="number" class="swal2-input" placeholder="Crédit initial">',
                 focusConfirm: false,
                 confirmButtonText: 'Enregistrer',
                 showCancelButton: true,
@@ -618,7 +618,7 @@ class UserManager {
             if (formValues) {
                 const [firstName, lastName, email, password, creditAmount] = formValues;
                 
-                // Appel Ã  l'API
+                // Appel à l'API
                 const result = await this.registerUser(
                     firstName, 
                     lastName, 
@@ -628,8 +628,8 @@ class UserManager {
                 );
 
                 if (result.success) {
-                    Swal.fire('SuccÃ¨s !', 'Utilisateur crÃ©Ã©.', 'success');
-                    // On utilise l'ID retournÃ© par l'API (result.data.userId)
+                    Swal.fire('Succès !', 'Utilisateur créé.', 'success');
+                    // On utilise l'ID retourné par l'API (result.data.userId)
                     const username = `${firstName} ${lastName}`;
                     this.addUserToDashboard(result.data.userId, username, creditAmount);
                 } else {

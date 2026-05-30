@@ -3,13 +3,14 @@ class NotificationManager {
     constructor(apiUrl, userManager) {
         this.apiUrl = apiUrl;
         this.userManager = userManager;
-        // On cible le TBODY dÃƒÂ©fini dans l'index.html
+
+        // On cible le TBODY défini dans l'index.html
         this.tbody = document.getElementById("maintenanceList");
-        
+
         if (this.tbody) {
-            // On lance le polling (vÃƒÂ©rification pÃƒÂ©riodique)
+            // On lance le polling (vérification périodique)
             this.initPolling();
-            // On lance l'ÃƒÂ©coute des WebSockets pour le temps rÃƒÂ©el
+            // On lance l'écoute des WebSockets pour le temps réel
             this.initSocket();
         }
     }
@@ -18,26 +19,31 @@ class NotificationManager {
         if (typeof io !== 'undefined') {
             if (!window.appSocket) {
                 const socketUrl = this.apiUrl.replace('/api', '');
-                window.appSocket = io(socketUrl, { transports: ['websocket', 'polling'] });
+                window.appSocket = io(socketUrl, {
+                    transports: ['websocket', 'polling']
+                });
             }
+
             this.socket = window.appSocket;
-            
-            // DÃƒÂ¨s qu'une prise passe en 'hs' (ou en 'libre'), on rafraÃƒÂ®chit les alertes
+
+            // Dès qu'une prise passe en 'hs' (ou en 'libre'), on rafraîchit les alertes
             this.socket.on('status_update', () => this.fetchAlerts());
+
             // Si on supprime une prise, on veut qu'elle disparaisse des alertes
             this.socket.on('new_plug_added', () => this.fetchAlerts());
         }
     }
 
     initPolling() {
-        // Essai immÃƒÂ©diat (si dÃƒÂ©jÃƒ  connectÃƒÂ©)
+        // Essai immédiat (si déjà connecté)
         this.fetchAlerts();
-        // Puis toutes les 10 secondes pour avoir du temps rÃƒÂ©el
+
+        // Puis toutes les 10 secondes pour avoir du temps réel
         setInterval(() => this.fetchAlerts(), 10000);
     }
 
     async fetchAlerts() {
-        // Si on n'est pas connectÃƒÂ©, on ne spamme pas l'API pour rien
+        // Si on n'est pas connecté, on ne spamme pas l'API pour rien
         if (!this.userManager || !this.userManager.token) return;
 
         try {
@@ -49,11 +55,12 @@ class NotificationManager {
 
             if (response.ok) {
                 const data = await response.json();
+
                 // L'API renvoie { alert_count: ..., devices: [...] }
                 this.updateUI(data.devices);
             }
         } catch (error) {
-            console.error("Erreur Notification:", error);
+            console.error("Erreur Notification :", error);
         }
     }
 
@@ -61,36 +68,53 @@ class NotificationManager {
         this.tbody.innerHTML = "";
 
         if (!alerts || alerts.length === 0) {
-            this.tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:#27ae60;">Aucune alerte Ã¢Å“â€¦</td></tr>`;
+            this.tbody.innerHTML = `
+                <tr>
+                    <td colspan="2" style="text-align:center; color:#27ae60;">
+                        Aucune alerte ✅
+                    </td>
+                </tr>
+            `;
             return;
         }
 
         alerts.forEach(alert => {
             const tr = document.createElement("tr");
 
-            // Date formatÃƒÂ©e (Heure seulement pour gagner de la place)
+            // Date formatée (heure seulement pour gagner de la place)
             const dateObj = new Date(alert.last_ping);
-            const timeStr = dateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            const timeStr = dateObj.toLocaleTimeString('fr-FR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
 
             // Colonne 1 : Appareil
             const tdDevice = document.createElement("td");
             tdDevice.innerHTML = `<b>${alert.id}</b>`;
 
-            // Colonne 2 : Alerte (Raison + Heure)
+            // Colonne 2 : Alerte (raison + heure)
             const tdAlert = document.createElement("td");
+
             // On met la raison en rouge et l'heure en petit gris
-            tdAlert.innerHTML = `<span style="color:#c0392b;">${alert.alert_reason}</span> <small style="color:#7f8c8d">(${timeStr})</small>`;
+            tdAlert.innerHTML = `
+                <span style="color:#c0392b;">${alert.alert_reason}</span>
+                <small style="color:#7f8c8d">(${timeStr})</small>
+            `;
 
             tr.appendChild(tdDevice);
             tr.appendChild(tdAlert);
+
             this.tbody.appendChild(tr);
         });
     }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    // On passe l'URL rÃƒÂ©elle et l'instance userManager existante
+    // On passe l'URL réelle et l'instance userManager existante
     if (typeof userManager !== 'undefined') {
-        new NotificationManager("https://recharge.cielnewton.fr/api", userManager);
+        new NotificationManager(
+            "https://recharge.cielnewton.fr/api",
+            userManager
+        );
     }
 });
