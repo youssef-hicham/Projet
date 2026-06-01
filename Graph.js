@@ -48,39 +48,46 @@ class ConsumptionGraph {
 
             this.socket.on('user_data_updated', (data) => {
                 // On vérifie si un utilisateur est sélectionné ET si c'est le bon
-                if (this.userManager &&
+                if (
+                    this.userManager &&
                     this.userManager.selectedUserId &&
-                    this.userManager.selectedUserId == data.userId) {
-
-                    console.log(`📈 Mise à jour du graphique pour l'utilisateur ${data.userId}...`);
+                    this.userManager.selectedUserId == data.userId
+                ) {
+                    console.log(`📊 Mise à jour du graphique pour l'utilisateur ${data.userId}...`);
                     this.loadUserConsumption(data.userId);
                 }
             });
 
-            // Écoute de l'énergie en temps réel
+            // NOUVEAU : Écoute de l'énergie en temps réel
             this.socket.on('live_consumption', (data) => {
                 console.log(`⚡ [WS] live_consumption reçu :`, data);
 
-                if (this.userManager &&
-                    this.userManager.selectedUserId == data.userId) {
-
-                    // Mise à jour uniquement du dernier point si même session
+                if (
+                    this.userManager &&
+                    this.userManager.selectedUserId == data.userId
+                ) {
+                    // On met à jour uniquement le dernier point du graphique si l'ID de session correspond
                     if (this.chart && this.lastSessionId == data.sessionId) {
-                        console.log(`📊 Mise à jour du graphique en direct : ${data.energyWh} Wh`);
+                        console.log(`📈 Mise à jour du graphique en direct : ${data.energyWh} Wh`);
 
                         const dataArray = this.chart.data.datasets[0].data;
                         dataArray[dataArray.length - 1] = data.energyWh;
 
+                        // Force la mise à jour visuelle
                         this.chart.update();
                     } else {
-                        console.log(`⚠️ Ignoré : Session actuelle (${this.lastSessionId}) != session reçue (${data.sessionId})`);
+                        console.log(
+                            `⚠️ Ignoré : Session actuelle (${this.lastSessionId}) != Session reçue (${data.sessionId})`
+                        );
                     }
                 } else {
                     const currentId = this.userManager
                         ? this.userManager.selectedUserId
                         : 'Aucun';
 
-                    console.log(`⚠️ Ignoré : User actuel (${currentId}) != user reçu (${data.userId})`);
+                    console.log(
+                        `⚠️ Ignoré : Utilisateur actuel (${currentId}) != Utilisateur reçu (${data.userId})`
+                    );
                 }
             });
         }
@@ -88,12 +95,16 @@ class ConsumptionGraph {
 
     async loadUserConsumption(userId) {
         try {
-            // Vérifie le token avant appel API
+            // On vérifie le token avant d'appeler
             if (!this.userManager.token) {
                 const logged = await this.userManager.loginAdmin();
-                if (!logged) return;
+
+                if (!logged) {
+                    return; // Si l'utilisateur annule
+                }
             }
 
+            // Appel de la route API correcte avec l'ID
             const response = await fetch(
                 `${this.apiUrl}/auth/users/${userId}/history`,
                 {
@@ -113,26 +124,34 @@ class ConsumptionGraph {
                         'error'
                     );
                 } else {
+                    // On affiche le code d'erreur pour aider au débogage
                     Swal.fire(
                         'Erreur',
                         `Impossible de récupérer l'historique. (Erreur ${response.status})`,
                         'error'
                     );
                 }
+
                 return;
             }
 
             const responseData = await response.json();
 
-            const data = responseData.history !== undefined
-                ? responseData.history
-                : responseData;
+            // L'API renvoie maintenant { history: [], transactions: [], user: {} }
+            const data =
+                responseData.history !== undefined
+                    ? responseData.history
+                    : responseData;
+
+            // Transformation des données (Array d'objets SQL -> Arrays pour Chart.js)
+            // On suppose que data est un tableau :
+            // [{ start_time: "...", energy_kwh: 0.5 }, ...]
 
             const dates = [];
             const values = [];
 
             if (Array.isArray(data)) {
-
+                // On enregistre l'ID de la dernière session pour la mise à jour en temps réel
                 this.lastSessionId = null;
 
                 const reversedData = [...data].reverse();
@@ -143,8 +162,10 @@ class ConsumptionGraph {
                 }
 
                 reversedData.forEach(session => {
+                    // Formatage simple de la date (ex : "12/05 14:30")
                     const dateObj = new Date(session.start_time);
 
+                    // Utilisation de toLocaleString pour inclure l'heure correctement
                     const formattedDate = dateObj.toLocaleString('fr-FR', {
                         month: 'numeric',
                         day: 'numeric',
@@ -154,7 +175,9 @@ class ConsumptionGraph {
 
                     dates.push(formattedDate);
 
+                    // Conversion kWh -> Wh pour plus de lisibilité
                     const energyWh = (session.energy_kwh || 0) * 1000;
+
                     values.push(energyWh);
                 });
             }
@@ -172,7 +195,9 @@ class ConsumptionGraph {
             return;
         }
 
-        if (this.chart) this.chart.destroy();
+        if (this.chart) {
+            this.chart.destroy();
+        }
 
         this.chart = new Chart(this.ctx, {
             type: "line",
@@ -189,8 +214,8 @@ class ConsumptionGraph {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
-                aspectRatio: 2,
+                maintainAspectRatio: true, // On garde les proportions pour éviter qu'il ne s'étire trop
+                aspectRatio: 2, // Format rectangulaire standard (2x plus large que haut)
                 scales: {
                     y: {
                         beginAtZero: true
@@ -201,7 +226,4 @@ class ConsumptionGraph {
     }
 }
 
-const graph = new ConsumptionGraph(
-    "https://recharge.cielnewton.fr/api",
-    userManager
-);
+const graph = new ConsumptionGraph("https://recharge.cielnewton.fr/api",userManager);

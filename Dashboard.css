@@ -71,7 +71,7 @@ body {
     flex-direction: column;
     gap: 25px;
     height: calc(100vh - 50px);
-    overflow-y: auto; /* Permet au panneau de dÃ©filer si le graph est grand, sans le couper */
+    overflow-y: auto; /* Permet au panneau de défiler si le graph est grand, sans le couper */
 }
 
 /* ==========================================
@@ -104,11 +104,11 @@ body {
 
 .scroll-content {
     overflow-y: auto;
-    max-height: 130px; /* En-tÃªte + 2 alertes env. */
+    max-height: 130px; /* En-tête + 2 alertes env. */
 }
 
 /* --- CORRECTIF GRAPHIQUE --- */
-/* EmpÃªche le graphique d'Ãªtre Ã©crasÃ© par le flexbox : il gardera sa taille et poussera le reste vers le bas */
+/* Empêche le graphique d'être écrasé par le flexbox : il gardera sa taille et poussera le reste vers le bas */
 .analyse-consommation {
     flex-shrink: 0;
 }
@@ -192,7 +192,7 @@ body {
    ========================================== */
 .table-wrapper {
     overflow-y: auto;
-    max-height: 160px; /* En-tÃªte + 2 Ã©quipements env. */
+    max-height: 160px; /* En-tête + 2 équipements env. */
 }
 
 table {
@@ -215,7 +215,7 @@ td {
 }
 
 /* ==========================================
-   SCROLLBAR PERSONNALISÃƒâ€°E
+   SCROLLBAR PERSONNALISÃ‰E
    ========================================== */
 .custom-scrollbar::-webkit-scrollbar {
     width: 6px;

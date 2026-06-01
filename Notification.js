@@ -3,10 +3,9 @@ class NotificationManager {
     constructor(apiUrl, userManager) {
         this.apiUrl = apiUrl;
         this.userManager = userManager;
-
         // On cible le TBODY défini dans l'index.html
         this.tbody = document.getElementById("maintenanceList");
-
+        
         if (this.tbody) {
             // On lance le polling (vérification périodique)
             this.initPolling();
@@ -19,16 +18,12 @@ class NotificationManager {
         if (typeof io !== 'undefined') {
             if (!window.appSocket) {
                 const socketUrl = this.apiUrl.replace('/api', '');
-                window.appSocket = io(socketUrl, {
-                    transports: ['websocket', 'polling']
-                });
+                window.appSocket = io(socketUrl, { transports: ['websocket', 'polling'] });
             }
-
             this.socket = window.appSocket;
-
+            
             // Dès qu'une prise passe en 'hs' (ou en 'libre'), on rafraîchit les alertes
             this.socket.on('status_update', () => this.fetchAlerts());
-
             // Si on supprime une prise, on veut qu'elle disparaisse des alertes
             this.socket.on('new_plug_added', () => this.fetchAlerts());
         }
@@ -37,7 +32,6 @@ class NotificationManager {
     initPolling() {
         // Essai immédiat (si déjà connecté)
         this.fetchAlerts();
-
         // Puis toutes les 10 secondes pour avoir du temps réel
         setInterval(() => this.fetchAlerts(), 10000);
     }
@@ -55,12 +49,11 @@ class NotificationManager {
 
             if (response.ok) {
                 const data = await response.json();
-
                 // L'API renvoie { alert_count: ..., devices: [...] }
                 this.updateUI(data.devices);
             }
         } catch (error) {
-            console.error("Erreur Notification :", error);
+            console.error("Erreur Notification:", error);
         }
     }
 
@@ -94,16 +87,17 @@ class NotificationManager {
 
             // Colonne 2 : Alerte (raison + heure)
             const tdAlert = document.createElement("td");
-
-            // On met la raison en rouge et l'heure en petit gris
             tdAlert.innerHTML = `
-                <span style="color:#c0392b;">${alert.alert_reason}</span>
-                <small style="color:#7f8c8d">(${timeStr})</small>
+                <span style="color:#c0392b;">
+                    ${alert.alert_reason}
+                </span>
+                <small style="color:#7f8c8d">
+                    (${timeStr})
+                </small>
             `;
 
             tr.appendChild(tdDevice);
             tr.appendChild(tdAlert);
-
             this.tbody.appendChild(tr);
         });
     }
